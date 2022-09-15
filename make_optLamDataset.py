@@ -14,6 +14,12 @@ import multiprocessing as mp
 from multiprocessing import Pool, freeze_support
 from multiprocessing import set_start_method
 
+###Example fminbound call:
+#resource for fminbound: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fminbound.html
+# FMB_biX_std = fminbound(lambda TI: calc_std(TI, TE_array, S_biX_4p, 2), 200, 600, xtol = 10**-1, full_output = True, disp = 3)
+# print("Estimated Nullpoint via T21 std of biX results:" + convert_fullOutput(FMB_biX_std))
+# print("     Error = {:.2f} :: Relative Error = {:.2f}%".format(FMB_biX_std[0] - TI1star,np.abs(TI1star-FMB_biX_std[0])/TI1star*100))
+
 
 #################################
 # Setting Parameters:
@@ -72,12 +78,31 @@ def generate_noiseySig_lambda_pairs(params, tdat = TE_array, iterations = num_it
 
         lamb_opt = fminbound(minLambda_objFunc, )
 
+def estimate_parameters(data, lam):
+    data_tilde = np.append(data, [0,0,0,0])
+    
+    (rc1e, rc2e, rT21e, rT22e), rcov = curve_fit(G_tilde(lam), tdata, data_tilde, bounds = (0, upper_bound), p0=initial, max_nfev = 4000)
+    
+    if rT22e > rT21e:
+        c1est = rc1e
+        c2est = rc2e
+        T21est = rT21e
+        T22est = rT22e
+    else:
+        c1est = rc2e
+        c2est = rc1e
+        T21est = rT22e
+        T22est = rT21e
+        
+    return c1est, c2est, T21est, T22est
 
 
 
 
-def minLambda_objFunc(lamb, tdata, function, starts = num_starts):
 
+def minLambda_objFunc(lamb, noisey_data, function, starts = num_starts):
+
+    est_high = np.array(estimate_parameters(noisey_data, 10**lamb))
     np.linalg.norm(agg_arr*(est_high-p_true))
 
 
