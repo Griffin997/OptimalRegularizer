@@ -1,12 +1,11 @@
 #################################
 # Importing Libraries:
 #################################
+import numpy as np
 from scipy.optimize import curve_fit
 from scipy.optimize import golden
 from scipy.optimize import fminbound
 import addcopyfighandler
-import statistics
-import math
 import time
 import h5py
 from tqdm import trange
@@ -21,33 +20,66 @@ from multiprocessing import set_start_method
 #################################
 
 #### Grid Parameters
-TE_array = np.arange(8, 512, 8) #ms units
+n_elements = 128
+d_start = 4
+d_increment = 4
+TE_array = np.linspace(d_start, d_increment*n_elements, n_elements)
+assert(np.diff(TE_array)[0]==d_increment)
+
+#### Model Parameters
+c1_set = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+c2_set = 1 - c1_set
+T21_set = np.array([10, 20, 30, 40, 50, 60])
+T22_set = np.array([70, 85, 100, 120, 150, 200])
+
+#### Process Parameters
+SNR_fixed  = 100    #SNR value used to generate noise realizations
+num_iters  = 10     #Number of noise realizations for a single parameter sample
+rand_seed  = 10     #Seed for rng if we want rng to be fixed
+num_starts = 10     #Number of random starts used in NLLS
+low_power = -7      #Low power of lambda used
+high_power = 3      #High power of lambda used
 
 
-#### Model parameters
-c1 = 0.5
-c2 = 0.5
-T21 = 45
-T22 = 200
-T11 = 600
-T12 = 1200
+#################################
+# Signal Related Functions:
+#################################
 
-true_params = np.array([T11, T12, c1, c2, T21, T22])
+def S_biX_4p(TE, d1, d2, T21, T22):
+    exp1 = d1*np.exp(-TE/T21)
+    exp2 = d2*np.exp(-TE/T22)
+    return exp1 + exp2
 
-#### Nullpoint Values
-TI1star = np.log(2)*T11
-TI2star = np.log(2)*T12
-
-#### Process parameters
-SNR_fixed = 100
-num_iters = 10
-rand_seed = 10
-num_starts = 10
+def add_noise(data,SNR = SNR_fixed):
+    sigma = 1/SNR #np.max(np.abs(data))/SNR
+    noise = np.random.normal(0,sigma,data.shape)
+    noised_data = data + noise
+    return noised_data
 
 
+#################################
+# Process Functions:
+#################################
+
+def generate_noiseySig_lambda_pairs(params, tdat = TE_array, iterations = num_iters):
+
+    signal = S_biX_4p(tdat, *params)
+
+    noised_array = []
+    for iter in range(iterations):
+        noised_sig = add_noise(signal)
+        noised_array.append(noised_sig)
+
+        lamb_opt = fminbound(minLambda_objFunc, )
 
 
-def calc_lambda_error(TI, tdata, function, starts = num_starts):
+
+
+
+def minLambda_objFunc(lamb, tdata, function, starts = num_starts):
+
+    np.linalg.norm(agg_arr*(est_high-p_true))
+
 
     data = generate_noised_sigs(TI, tdata)
 
