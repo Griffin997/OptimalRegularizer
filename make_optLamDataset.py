@@ -89,7 +89,7 @@ def check_param_order(popt):
         for pi in range(np.size(popt)//2):
             p_hold = popt[2*pi]
             popt[2*pi] = popt[2*pi+1]
-            popt[2*pi] = p_hold
+            popt[2*pi+1] = p_hold
     return popt
 
 def estimate_parameters(noisey_sig, lam, init_p, tdata = TE_array):
