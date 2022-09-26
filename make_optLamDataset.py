@@ -14,6 +14,8 @@ import multiprocessing as mp
 from multiprocessing import Pool, freeze_support
 from multiprocessing import set_start_method
 import concurrent.futures
+from itertools import product
+
 
 ###Example fminbound call:
 #resource for fminbound: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fminbound.html
