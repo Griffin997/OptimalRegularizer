@@ -51,6 +51,7 @@ num_starts = 10     #Number of random starts used in NLLS
 low_power = -7      #Low power of lambda used
 high_power = 3      #High power of lambda used
 ob_weight = 100     #The magnitude to scale the T2 parameters by
+argument_array = np.array([1, 1,1/ob_weight,1/ob_weight])   #How are the parameters scaled when error functions are applied
 
 
 #################################
@@ -122,7 +123,7 @@ def estimate_parameters_multistart( noisey_sig, lam, tdata = TE_array, starts = 
     return popt
 
 
-def minLambda_objFunc(lamb, noisey_data, p_true, agg_arr = np.array([1, 1,1/ob_weight,1/ob_weight])):
+def minLambda_objFunc(lamb, noisey_data, p_true, agg_arr = argument_array):
 
     p_est = np.array(estimate_parameters(noisey_data, 10**lamb, p_true))
     obj_value = np.linalg.norm(agg_arr*(p_est-p_true))
